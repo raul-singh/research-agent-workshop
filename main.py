@@ -21,6 +21,7 @@ def grep_documents(
     document: str | None = None,
     surrounding: int = 100,
     after_only: bool = False,
+    fuzzy: bool = False,
 ) -> str:
     """Search the D&D 5e SRD knowledge base for information.
 
@@ -33,8 +34,9 @@ def grep_documents(
         query: The search string (supports regex). Be specific with your search terms.
         document: Optional specific document filename to search (e.g., "DND5eSRD_104-120.md").
                   If None, searches all documents.
-        surrounding: Number of characters of context to include around matches (default: 200).
+        surrounding: Number of characters of context to include around matches (default: 100).
         after_only: If True, only include characters after the match, not before.
+        fuzzy: If True, find similar text when exact matches fail.
 
     Returns:
         Formatted search results with source document and matching content.
@@ -44,6 +46,7 @@ def grep_documents(
         document=document,
         surrounding=surrounding,
         after_only=after_only,
+        fuzzy=fuzzy,
     )
 
     if not results:
@@ -60,6 +63,13 @@ def grep_documents(
         output_parts.append("")
 
     return "\n".join(output_parts)
+
+
+# OpenAI Responses currently expects the JSON schema's `required` list to name every
+# property, even if the tool supports optional ones. Ensure the tool metadata matches
+# that expectation so registration doesn't fail.
+grep_documents.required = list(grep_documents.schema["parameters"]["properties"].keys())
+grep_documents.schema["parameters"]["required"] = grep_documents.required
 
 
 @tool
@@ -97,6 +107,7 @@ The following shows the organization of the SRD documents you can search. Use th
    - Use the `document` parameter to target specific files when you know where content is, using the structure provided above. Prefer this over searching all documents.
    - For broad topics, search without specifying a document
    - You may need multiple searches to gather complete information
+   - Set `fuzzy=True` when you need approximate matches (typos, paraphrasing, uncertain spelling)
    - To look for a title, prepend "# " to the query, for example: "# Fireball". You can pair this with `after_only=True` to look for the content after the title since usually content before the title is not relevant.
    - Stop searching when you have enough information to answer the question.
 4. **Synthesize the results** into a clear, accurate answer
@@ -108,6 +119,8 @@ The following shows the organization of the SRD documents you can search. Use th
 - Use the `grep_documents` tool in parallel to search for multiple queries at once.
 - Prefer generic queries over specific queries that may fail.
 - If you are doing very wide queries, use a small surrounding value.
+- If yu don't find the answer because of the small surrounding value, increase the surrounding value.
+- Combine `fuzzy=True` with smaller `surrounding` windows to keep the context concise.
 - Do not use your own knowledge to answer the question. Always search the knowledge base for the answer.
 - Always search before answering - don't rely on assumptions
 - Quote relevant rules text when applicable

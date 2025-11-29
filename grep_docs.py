@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # /// script
 # requires-python = ">=3.10"
-# dependencies = ["click"]
+# dependencies = ["click", "rapidfuzz>=3.9.0"]
 # ///
 """Grep documents with surrounding context."""
 
@@ -10,6 +10,11 @@ from bisect import bisect_right
 from pathlib import Path
 
 import click
+from rapidfuzz import fuzz  # type: ignore[import]
+
+FUZZY_THRESHOLD = 85.0
+MAX_FUZZY_MATCHES_PER_BLOCK = 5
+_PARAGRAPH_PATTERN = re.compile(r".+?(?:\n\s*\n|$)", re.DOTALL)
 
 
 def grep_documents(
@@ -17,6 +22,7 @@ def grep_documents(
     document: str | None = None,
     surrounding: int = 100,
     after_only: bool = False,
+    fuzzy: bool = False,
 ) -> list[dict[str, str]]:
     """Search for query in documents and return matches with surrounding context.
 
@@ -25,6 +31,7 @@ def grep_documents(
         document: Optional specific document filename to search. If None, searches all .md files in folder.
         surrounding: Number of characters before and after the match to include (default: 100).
         after_only: If True, only include characters after the match, not before (default: False).
+        fuzzy: If True, use fuzzy search to find similar text (default: False).
 
     Returns:
         A list of dicts, each containing:
@@ -34,17 +41,17 @@ def grep_documents(
             - "title_path": Markdown heading path for the match location
     """
 
-    folder = Path("knowledge_base/docs")
+    folder_path = Path("knowledge_base/docs")
     results = []
 
     # Determine which files to search
     if document:
-        files = [folder / document]
+        files = [folder_path / document]
         if not files[0].exists():
             # Try with .md extension
-            files = [folder / f"{document}.md"]
+            files = [folder_path / f"{document}.md"]
     else:
-        files = sorted(folder.glob("*.md"))
+        files = sorted(folder_path.glob("*.md"))
 
     try:
         pattern = re.compile(query, re.IGNORECASE)
@@ -59,12 +66,19 @@ def grep_documents(
         content = file_path.read_text(encoding="utf-8")
         heading_index = _build_heading_index(content)
 
-        for match in pattern.finditer(content):
+        if fuzzy:
+            match_spans = _fuzzy_find_matches(query, content)
+        else:
+            match_spans = (
+                (m.start(), m.end(), m.group()) for m in pattern.finditer(content)
+            )
+
+        for match_start, match_end, matched_text in match_spans:
             if after_only:
-                start = match.start()
+                start = match_start
             else:
-                start = max(0, match.start() - surrounding)
-            end = min(len(content), match.end() + surrounding)
+                start = max(0, match_start - surrounding)
+            end = min(len(content), match_end + surrounding)
 
             # Extract context
             context = content[start:end]
@@ -79,8 +93,8 @@ def grep_documents(
                 {
                     "source": file_path.name,
                     "content": context,
-                    "match": match.group(),
-                    "title_path": _find_title_path(match.start(), heading_index),
+                    "match": matched_text,
+                    "title_path": _find_title_path(match_start, heading_index),
                 }
             )
 
@@ -122,19 +136,55 @@ def _find_title_path(position: int, heading_index: tuple[list[int], list[str]]) 
     return paths[idx]
 
 
+def _fuzzy_find_matches(query: str, content: str) -> list[tuple[int, int, str]]:
+    """Find approximate matches for query inside content."""
+    matches: list[tuple[int, int, str]] = []
+    normalized_query = query.strip()
+    if not normalized_query:
+        return matches
+
+    query_norm = normalized_query.lower()
+
+    for block in _PARAGRAPH_PATTERN.finditer(content):
+        segment = block.group()
+        if not segment.strip():
+            continue
+
+        working_norm = segment.lower()
+        match_count = 0
+
+        while match_count < MAX_FUZZY_MATCHES_PER_BLOCK:
+            alignment = fuzz.partial_ratio_alignment(query_norm, working_norm)
+            if alignment.score < FUZZY_THRESHOLD:
+                break
+
+            relative_start = alignment.dest_start
+            relative_end = alignment.dest_end
+            abs_start = block.start() + relative_start
+            abs_end = block.start() + relative_end
+            matched_text = content[abs_start:abs_end].strip()
+            if not matched_text:
+                matched_text = segment.strip()
+
+            matches.append((abs_start, abs_end, matched_text))
+            match_count += 1
+
+            replacement = " " * (relative_end - relative_start)
+            working_norm = (
+                working_norm[:relative_start]
+                + replacement
+                + working_norm[relative_end:]
+            )
+
+    return matches
+
+
 @click.command()
 @click.argument("query")
 @click.option(
     "--document",
     "-d",
     help="Specific document to search (searches all if not provided)",
-)
-@click.option(
-    "--folder",
-    "-f",
-    default="output",
-    type=click.Path(exists=True, path_type=Path),
-    help="Folder containing documents",
 )
 @click.option(
     "--surrounding",
@@ -144,30 +194,30 @@ def _find_title_path(position: int, heading_index: tuple[list[int], list[str]]) 
     help="Characters of context before/after match",
 )
 @click.option(
-    "--case-sensitive", "-c", is_flag=True, help="Enable case-sensitive search"
-)
-@click.option(
     "--after-only",
     "-a",
     is_flag=True,
     help="Only include characters after the match, not before",
 )
+@click.option(
+    "--fuzzy",
+    is_flag=True,
+    help="Enable fuzzy search to find approximate matches",
+)
 def main(
     query: str,
     document: str | None,
-    folder: Path,
     surrounding: int,
-    case_sensitive: bool,
     after_only: bool,
+    fuzzy: bool,
 ) -> None:
     """Search for QUERY in markdown documents."""
     results = grep_documents(
         query=query,
         document=document,
-        folder=folder,
         surrounding=surrounding,
-        case_insensitive=not case_sensitive,
         after_only=after_only,
+        fuzzy=fuzzy,
     )
 
     if not results:
