@@ -1,0 +1,938 @@
+# D&D 5e SRD Document Structure
+
+This file maps the content structure across all SRD markdown files.
+Each entry shows the document filename and its hierarchical section structure.
+
+---
+
+## DND5eSRD_001-018.md
+Core rules for gameplay, combat, and character mechanics.
+
+- Legal Information
+- Contents
+  - Index of Stat Blocks
+- Playing the Game
+  - Rhythm of Play
+  - The Six Abilities
+  - D20 Tests
+  - Ability Checks
+  - Saving Throws
+  - Attack Rolls
+  - Advantage/Disadvantage
+  - Proficiency
+  - Skills
+  - Saving Throw Proficiencies
+  - Equipment Proficiencies
+  - Actions
+  - Reactions
+  - Social Interaction
+  - Exploration
+  - Vision and Light
+  - Hazards
+  - Travel
+- Combat
+  - The Order of Combat
+  - Movement and Position
+  - Creature Size
+  - Making an Attack
+  - Cover
+  - Ranged Attacks
+  - Melee Attacks
+  - Opportunity Attacks
+  - Mounted Combat
+  - Underwater Combat
+  - Damage and Healing
+  - Dropping to 0 Hit Points
+  - Temporary Hit Points
+
+---
+
+## DND5eSRD_019-035.md
+Character creation and class introductions (Barbarian, Bard).
+
+- Character Creation
+  - Choose a Character Sheet
+  - Create Your Character
+  - Step 1: Choose Class
+  - Step 2: Character Origin
+  - Step 3: Ability Scores
+  - Step 4: Alignment
+  - Step 5: Character Creation Details
+  - Level Advancement
+  - Gaining a Level
+  - Tiers of Play
+  - Starting at Higher Levels
+  - Multiclassing
+  - Trinkets
+- Classes
+  - Barbarian
+  - Bard
+
+---
+
+## DND5eSRD_036-046.md
+Cleric and Druid classes.
+
+- Cleric
+  - Cleric Class Features
+  - Cleric Spell List
+  - Cleric Subclass: Life Domain
+- Druid
+  - Druid Class Features
+  - Druid Spell List
+  - Druid Subclass: Circle of the Land
+
+---
+
+## DND5eSRD_047-063.md
+Fighter, Monk, Paladin, Ranger, and Rogue classes.
+
+- Fighter
+  - Core Fighter Traits
+  - Becoming a Fighter
+  - Fighter Class Features
+  - Fighter Features
+  - Fighter Subclass: Champion
+- Monk
+  - Core Monk Traits
+  - Becoming a Monk
+  - Monk Class Features
+  - Monk Features
+  - Monk Subclass: Warrior of the Open Hand
+- Paladin
+  - Core Paladin Traits
+  - Becoming a Paladin
+  - Paladin Class Features
+  - Paladin Features
+  - Paladin Spell List
+  - Paladin Subclass: Oath of Devotion
+- Ranger
+  - Core Ranger Traits
+  - Becoming a Ranger
+  - Ranger Class Features
+  - Ranger Features
+  - Ranger Spell List
+    - Level 1 Ranger Spells
+    - Level 2 Ranger Spells
+    - Level 3 Ranger Spells
+    - Level 4 Ranger Spells
+    - Level 5 Ranger Spells
+  - Ranger Subclass: Hunter
+- Rogue
+  - Core Rogue Traits
+  - Becoming a Rogue
+  - Rogue Class Features
+  - Rogue Features
+
+---
+
+## DND5eSRD_064-076.md
+Rogue subclass, Sorcerer, and Warlock classes.
+
+- Rogue (continued)
+  - Rogue Subclass: Thief
+- Sorcerer
+  - Becoming a Sorcerer
+  - Sorcerer Class Features
+  - Sorcerer Features
+  - Metamagic Options
+  - Sorcerer Spell List
+  - Sorcerer Subclass: Draconic Sorcery
+- Warlock
+  - Becoming a Warlock
+  - Warlock Class Features
+  - Warlock Features
+  - Eldritch Invocation Options
+  - Warlock Spell List
+  - Warlock Subclass: Fiend Patron
+
+---
+
+## DND5eSRD_077-086.md
+Wizard class and character origins.
+
+- Wizard
+  - Core Wizard Traits
+  - Becoming a Wizard
+  - Wizard Class Features
+  - Wizard Features
+  - Wizard Spell List
+  - Wizard Subclass: Evoker
+- Character Origins
+  - Character Backgrounds
+  - Character Species
+
+---
+
+## DND5eSRD_087-103.md
+Feats and equipment.
+
+- Feats
+  - Feat Descriptions
+  - Parts of a Feat
+  - Origin Feats
+  - General Feats
+  - Fighting Style Feats
+  - Epic Boon Feats
+- Equipment
+  - Coins
+  - Weapons
+  - Mastery Properties
+  - Weapons Table
+  - Armor
+  - Tools
+  - Adventuring Gear
+  - Mounts and Vehicles
+  - Large Vehicles
+  - Lifestyle Expenses
+  - Food, Drink, and Lodging
+  - Hirelings
+  - Spellcasting
+  - Magic Items
+  - Crafting Nonmagical Items
+  - Brewing Potions of Healing
+  - Scribing Spell Scrolls
+
+---
+
+## DND5eSRD_104-120.md
+Spellcasting rules and spell descriptions (A–C).
+
+- Spells
+  - Gaining Spells
+  - Casting Spells
+  - Spell Level
+  - Spell Slots
+  - Casting without Slots
+  - Using a Higher-Level Spell Slot
+  - School of Magic
+  - Class Spell Lists
+  - Casting Time
+  - Range
+  - Components
+  - Duration
+  - Effects
+  - Targets
+  - Saving Throws
+  - Attack Rolls
+  - Combining Spell Effects
+- Spell Descriptions (A–C starts here)
+
+---
+
+## DND5eSRD_121-137.md
+Spell descriptions (C–G).
+
+- Spells:
+  - Create or Destroy Water
+  - Create Undead
+  - Creation
+  - Cure Wounds
+  - Dancing Lights
+  - Darkness
+  - Darkvision
+  - Daylight
+  - Death Ward
+  - Delayed Blast Fireball
+  - Demiplane
+  - Detect Evil and Good
+  - Detect Magic
+  - Detect Poison and Disease
+  - Detect Thoughts
+  - Dimension Door
+  - Disguise Self
+  - Disintegrate
+  - Dispel Evil and Good
+  - Dispel Magic
+  - Dissonant Whispers
+  - Divination
+  - Divine Favor
+  - Divine Smite
+  - Divine Word
+  - Dominate Beast
+  - Dominate Monster
+  - Dominate Person
+  - Dragon's Breath
+  - Dream
+  - Druidcraft
+  - Earthquake
+  - Eldritch Blast
+  - Elementalism
+  - Enhance Ability
+  - Enlarge/Reduce
+  - Ensnaring Strike
+  - Entangle
+  - Enthrall
+  - Etherealness
+  - Expeditious Retreat
+  - Eyebite
+  - Fabricate
+  - Faerie Fire
+  - Faithful Hound
+  - False Life
+  - Fear
+  - Feather Fall
+  - Find Familiar
+  - Find Steed
+  - Find the Path
+  - Find Traps
+  - Finger of Death
+  - Fireball
+  - Fire Bolt
+  - Fire Shield
+  - Fire Storm
+  - Flame Blade
+  - Flame Strike
+  - Flaming Sphere
+  - Flesh to Stone
+  - Floating Disk
+  - Fly
+  - Fog Cloud
+  - Forbiddance
+  - Forcecage
+  - Foresight
+  - Freedom of Movement
+  - Freezing Sphere
+  - Gaseous Form
+  - Gate
+  - Geas
+  - Gentle Repose
+  - Giant Insect
+  - Glibness
+  - Globe of Invulnerability
+  - Glyph of Warding
+  - Goodberry
+  - Grease
+  - Greater Invisibility
+  - Greater Restoration
+  - Guardian of Faith
+  - Guards and Wards
+
+---
+
+## DND5eSRD_155-175.md
+Spell descriptions (P–Z).
+
+- Spells:
+  - Prismatic Wall
+  - Private Sanctum
+  - Produce Flame
+  - Programmed Illusion
+  - Project Image
+  - Protection from Energy
+  - Protection from Evil and Good
+  - Protection from Poison
+  - Purify Food and Drink
+  - Raise Dead
+  - Ray of Enfeeblement
+  - Ray of Frost
+  - Regenerate
+  - Ray of Sickness
+  - Reincarnate
+  - Remove Curse
+  - Resilient Sphere
+  - Resistance
+  - Resurrection
+  - Reverse Gravity
+  - Revivify
+  - Rope Trick
+  - Sacred Flame
+  - Sanctuary
+  - Scorching Ray
+  - Scrying
+  - Searing Smite
+  - Secret Chest
+  - See Invisibility
+  - Seeming
+  - Sending
+  - Sequester
+  - Shapechange
+  - Shatter
+  - Shield
+  - Shield of Faith
+  - Shillelagh
+  - Shining Smite
+  - Shocking Grasp
+  - Silence
+  - Silent Image
+  - Simulacrum
+  - Sleep
+  - Sleet Storm
+  - Slow
+  - Sorcerous Burst
+  - Spare the Dying
+  - Speak with Animals
+  - Speak with Dead
+  - Speak with Plants
+  - Spider Climb
+  - Spike Growth
+  - Spirit Guardians
+  - Spiritual Weapon
+  - Starry Wisp
+  - Stinking Cloud
+  - Stone Shape
+  - Stoneskin
+  - Storm of Vengeance
+  - Suggestion
+  - Summon Dragon
+  - Sunbeam
+  - Sunburst
+  - Symbol
+  - Telekinesis
+  - Telepathic Bond
+  - Teleport
+  - Teleportation Circle
+  - Thaumaturgy
+  - Thunderwave
+  - Time Stop
+  - Tiny Hut
+  - Tongues
+  - Transport via Plants
+  - Tree Stride
+  - True Polymorph
+  - True Resurrection
+  - True Seeing
+  - True Strike
+  - Tsunami
+  - Unseen Servant
+  - Vampiric Touch
+  - Vicious Mockery
+  - Vitriolic Sphere
+  - Wall of Fire
+  - Wall of Force
+  - Wall of Ice
+  - Wall of Stone
+  - Wall of Thorns
+  - Warding Bond
+  - Water Breathing
+  - Water Walk
+  - Web
+  - Weird
+  - Wind Walk
+  - Wind Wall
+  - Wish
+  - Word of Recall
+  - Zone of Truth
+
+---
+
+## DND5eSRD_176-191.md
+Rules glossary and definitions.
+
+- Rules Glossary
+  - Glossary Conventions
+  - Rules Definitions
+
+---
+
+## DND5eSRD_192-203.md
+DM gameplay tools and encounter building.
+
+- Gameplay Toolbox
+  - Travel Pace
+  - Creating a Background
+  - Curses and Magical Contagions
+  - Magical Contagions
+  - Environmental Effects
+  - Fear and Mental Stress
+  - Poison
+  - Traps
+  - Combat Encounters
+
+---
+
+## DND5eSRD_204-229.md
+Magic items introduction and A–L items.
+
+- Magic Items
+  - Magic Item Categories
+  - Magic Item Rarity
+  - Activating a Magic Item
+  - Crafting Magic Items
+  - Sentient Magic Items
+- Magic Items A–Z (A–L)
+
+---
+
+## DND5eSRD_230-252.md
+Magic items (M–W).
+
+- Magic Items:
+  - Manual of Quickness of Action
+  - Marvelous Pigments
+  - Medallion of Thoughts
+  - Mirror of Life Trapping
+  - Mithral Armor
+  - Mysterious Deck
+  - Necklace of Adaptation
+  - Necklace of Fireballs
+  - Necklace of Prayer Beads
+  - Nine Lives Stealer
+  - Oathbow
+  - Oil of Etherealness
+  - Oil of Sharpness
+  - Oil of Slipperiness
+  - Pearl of Power
+  - Periapt of Health
+  - Periapt of Proof against Poison
+  - Periapt of Wound Closure
+  - Philter of Love
+  - Pipes of Haunting
+  - Pipes of the Sewers
+  - Plate Armor of Etherealness
+  - Portable Hole
+  - Potion of Animal Friendship
+  - Potion of Clairvoyance
+  - Potion of Climbing
+  - Potion of Diminution
+  - Potion of Flying
+  - Potion of Gaseous Form
+  - Potion of Giant Strength
+  - Potion of Growth
+  - Potions of Healing
+  - Potion of Heroism
+  - Potion of Invisibility
+  - Potion of Invulnerability
+  - Potion of Longevity
+  - Potion of Mind Reading
+  - Potion of Poison
+  - Potion of Resistance
+  - Potion of Speed
+  - Potion of Vitality
+  - Potion of Water Breathing
+  - Quarterstaff of the Acrobat
+  - Ring of Animal Influence
+  - Ring of Djinni Summoning
+  - Ring of Elemental Command
+  - Ring of Evasion
+  - Ring of Feather Falling
+  - Ring of Free Action
+  - Ring of Invisibility
+  - Ring of Jumping
+  - Ring of Mind Shielding
+  - Ring of Protection
+  - Ring of Regeneration
+  - Ring of Resistance
+  - Ring of Shooting Stars
+  - Ring of Spell Storing
+  - Ring of Spell Turning
+  - Ring of Swimming
+  - Ring of Telekinesis
+  - Ring of the Ram
+  - Ring of Three Wishes
+  - Ring of Warmth
+  - Ring of Water Walking
+  - Ring of X-ray Vision
+  - Robe of Eyes
+  - Robe of Scintillating Colors
+  - Robe of Stars
+  - Robe of the Archmagi
+  - Robe of Useful Items
+  - Rod of Absorption
+  - Rod of Alertness
+  - Rod of Lordly Might
+  - Rod of Resurrection
+  - Rod of Rulership
+  - Rod of Security
+  - Rope of Climbing
+  - Rope of Entanglement
+  - Scarab of Protection
+  - Scimitar of Speed
+  - Sending Stones
+  - Sentinel Shield
+  - Shield, +1, +2, or +3
+  - Shield of Missile Attraction
+  - Shield of the Cavalier
+  - Slippers of Spider Climbing
+  - Sovereign Glue
+  - Spellguard Shield
+  - Spell Scroll
+  - Sphere of Annihilation
+  - Staff of Charming
+  - Staff of Fire
+  - Staff of Frost
+  - Staff of Healing
+  - Staff of Power
+  - Staff of Striking
+  - Staff of Swarming Insects
+  - Staff of the Magi
+  - Staff of the Python
+  - Staff of the Woodlands
+  - Staff of Thunder and Lightning
+  - Staff of Withering
+  - Stone of Controlling Earth Elementals
+  - Stone of Good Luck (Luckstone)
+  - Sun Blade
+  - Sword of Life Stealing
+  - Sword of Sharpness
+  - Sword of Wounding
+  - Talisman of Pure Good
+  - Talisman of the Sphere
+  - Talisman of Ultimate Evil
+  - Thunderous Greatclub
+  - Tome of Clear Thought
+  - Tome of Leadership and Influence
+  - Tome of Understanding
+  - Trident of Fish Command
+  - Universal Solvent
+  - Vicious Weapon
+  - Vorpal Sword
+  - Wand of Binding
+  - Wand of Enemy Detection
+  - Wand of Fear
+  - Wand of Fireballs
+  - Wand of Lightning Bolts
+  - Wand of Magic Detection
+  - Wand of Magic Missiles
+  - Wand of Paralysis
+  - Wand of Polymorph
+  - Wand of Secrets
+  - Wand of the War Mage, +1, +2, or +3
+  - Wand of Web
+  - Wand of Wonder
+
+---
+
+## DND5eSRD_253-272.md
+Monster rules and monsters (A–G).
+
+- Monsters
+  - Stat Block Overview
+  - Parts of a Stat Block
+- Monsters A–Z:
+  - Aboleth
+  - Air Elemental
+  - Animated Objects
+  - Ankheg
+  - Assassin
+  - Awakened Plants
+  - Axe Beak
+  - Azer
+  - Balor
+  - Bandits
+  - Barbed Devil
+  - Basilisk
+  - Bearded Devil
+  - Behir
+  - Berserker
+  - Black Dragons
+  - Black Pudding
+  - Blink Dog
+  - Blue Dragons
+  - Bone Devil
+  - Brass Dragons
+  - Bronze Dragons
+  - Bugbears
+  - Bulette
+  - Centaur
+  - Chain Devil
+
+---
+
+## DND5eSRD_273-292.md
+Monsters (C–O).
+
+- Monsters:
+  - Chimera
+  - Chuul
+  - Clay Golem
+  - Cloaker
+  - Cloud Giant
+  - Cockatrice
+  - Commoner
+  - Copper Dragons
+  - Couatl
+  - Crawling Claw
+  - Cultists
+  - Darkmantle
+  - Death Dog
+  - Deva
+  - Djinni
+  - Doppelganger
+  - Dragon Turtle
+  - Dretch
+  - Drider
+  - Druid
+  - Dryad
+  - Earth Elemental
+  - Efreeti
+  - Erinyes
+  - Ettercap
+  - Ettin
+  - Fire Elemental
+  - Fire Giant
+  - Flesh Golem
+  - Frost Giant
+  - Fungi
+  - Gargoyle
+  - Gelatinous Cube
+  - Ghast
+  - Ghost
+  - Ghoul
+  - Gibbering Mouther
+  - Glabrezu
+  - Gladiator
+  - Gnoll
+  - Goblins
+  - Gold Dragons
+  - Ancient Gold Dragon
+  - Gorgon
+
+---
+
+## DND5eSRD_293-312.md
+Monsters (G–O).
+
+- Monsters:
+  - Gray Ooze
+  - Green Dragons
+  - Green Hag
+  - Grick
+  - Griffon
+  - Grimlock
+  - Guardian Naga
+  - Guards
+  - Half-Dragon
+  - Harpy
+  - Hell Hound
+  - Hezrou
+  - Hill Giant
+  - Hippogriff
+  - Hobgoblins
+  - Homunculus
+  - Horned Devil
+  - Hydra
+  - Ice Devil
+  - Imp
+  - Incubus
+  - Invisible Stalker
+  - Iron Golem
+  - Knight
+  - Kobold
+  - Kraken
+  - Lamia
+  - Lemure
+  - Lich
+  - Mages
+  - Magmin
+  - Manticore
+  - Marilith
+  - Medusa
+  - Mephits
+  - Merfolk
+  - Merrow
+  - Mimic
+  - Minotaur of Baphomet
+  - Mummies
+  - Nalfeshnee
+  - Night Hag
+  - Nightmare
+  - Noble
+  - Ochre Jelly
+  - Ogre
+  - Oni
+
+---
+
+## DND5eSRD_313-332.md
+Monsters (O–S).
+
+- Monsters:
+  - Otyugh
+  - Owlbear
+  - Pegasus
+  - Phase Spider
+  - Pirates
+    - Pirate
+    - Pirate Captain
+  - Pit Fiend
+  - Planetar
+  - Priests
+    - Priest Acolyte
+    - Priest
+  - Pseudodragon
+  - Purple Worm
+  - Quasit
+  - Rakshasa
+  - Red Dragons
+    - Red Dragon Wyrmling
+    - Young Red Dragon
+    - Adult Red Dragon
+    - Ancient Red Dragon
+  - Remorhaz
+  - Roc
+  - Roper
+  - Rust Monster
+  - Sahuagin
+    - Sahuagin Warrior
+  - Salamander
+  - Satyr
+  - Scout
+  - Sea Hag
+  - Shadow
+  - Shambling Mound
+  - Shield Guardian
+  - Silver Dragons
+    - Silver Dragon Wyrmling
+    - Young Silver Dragon
+    - Adult Silver Dragon
+    - Ancient Silver Dragon
+  - Skeletons
+    - Skeleton
+    - Warhorse Skeleton
+    - Minotaur Skeleton
+  - Solar
+  - Specter
+  - Sphinxes
+    - Sphinx of Wonder
+    - Sphinx of Lore
+    - Sphinx of Valor
+  - Spirit Naga
+  - Sprite
+  - Spy
+  - Stirge
+  - Stone Giant
+  - Stone Golem
+  - Storm Giant
+  - Succubus
+  - Tarrasque
+  - Toughs
+    - Tough
+    - Tough Boss
+
+---
+
+## DND5eSRD_333-364.md
+Monsters (T–Z) and Animals.
+
+- Monsters:
+  - Treant
+  - Troll
+    - Troll Limb
+  - Unicorn
+  - Vampires
+    - Vampire Familiar
+    - Vampire Spawn
+    - Vampire
+  - Vrock
+  - Warriors
+    - Warrior Infantry
+    - Warrior Veteran
+  - Water Elemental
+  - Werebear
+  - Wereboar
+  - Wererat
+  - Weretiger
+  - Werewolf
+  - White Dragons
+    - White Dragon Wyrmling
+    - Young White Dragon
+    - Adult White Dragon
+    - Ancient White Dragon
+  - Wight
+  - Will-o'-Wisp
+  - Winter Wolf
+  - Worg
+  - Wraith
+  - Wyvern
+  - Xorn
+  - Zombies
+    - Zombie
+    - Ogre Zombie
+
+- Animals:
+  - Allosaurus
+  - Ankylosaurus
+  - Ape
+  - Archelon
+  - Baboon
+  - Badger
+  - Bat
+  - Black Bear
+  - Blood Hawk
+  - Boar
+  - Brown Bear
+  - Camel
+  - Cat
+  - Constrictor Snake
+  - Crab
+  - Crocodile
+  - Deer
+  - Dire Wolf
+  - Draft Horse
+  - Eagle
+  - Elephant
+  - Elk
+  - Flying Snake
+  - Frog
+  - Giant Ape
+  - Giant Badger
+  - Giant Bat
+  - Giant Boar
+  - Giant Centipede
+  - Giant Constrictor Snake
+  - Giant Crab
+  - Giant Crocodile
+  - Giant Eagle
+  - Giant Elk
+  - Giant Fire Beetle
+  - Giant Frog
+  - Giant Goat
+  - Giant Hyena
+  - Giant Lizard
+  - Giant Octopus
+  - Giant Owl
+  - Giant Rat
+  - Giant Scorpion
+  - Giant Seahorse
+  - Giant Shark
+  - Giant Spider
+  - Giant Toad
+  - Giant Venomous Snake
+  - Giant Vulture
+  - Giant Wasp
+  - Giant Weasel
+  - Giant Wolf Spider
+  - Goat
+  - Hawk
+  - Hippopotamus
+  - Hunter Shark
+  - Hyena
+  - Jackal
+  - Killer Whale
+  - Lion
+  - Lizard
+  - Mammoth
+  - Mastiff
+  - Mule
+  - Octopus
+  - Owl
+  - Panther
+  - Piranha
+  - Plesiosaurus
+  - Polar Bear
+  - Pony
+  - Pteranodon
+  - Rat
+  - Raven
+  - Reef Shark
+  - Rhinoceros
+  - Riding Horse
+  - Saber-Toothed Tiger
+  - Scorpion
+  - Seahorse
+  - Spider
+  - Swarm of Bats
+  - Swarm of Insects
+  - Swarm of Piranhas
+  - Swarm of Rats
+  - Swarm of Ravens
+  - Swarm of Venomous Snakes
+  - Tiger
+  - Triceratops
+  - Tyrannosaurus Rex
+  - Venomous Snake
+  - Vulture
+  - Warhorse
+  - Weasel
+  - Wolf
