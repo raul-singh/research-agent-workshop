@@ -6,6 +6,7 @@
 """Grep documents with surrounding context."""
 
 import re
+from bisect import bisect_right
 from pathlib import Path
 
 import click
@@ -30,6 +31,7 @@ def grep_documents(
             - "source": The document filename
             - "content": The matched text with surrounding context
             - "match": The exact matched text
+            - "title_path": Markdown heading path for the match location
     """
 
     folder = Path("knowledge_base/docs")
@@ -55,6 +57,7 @@ def grep_documents(
             continue
 
         content = file_path.read_text(encoding="utf-8")
+        heading_index = _build_heading_index(content)
 
         for match in pattern.finditer(content):
             if after_only:
@@ -77,10 +80,46 @@ def grep_documents(
                     "source": file_path.name,
                     "content": context,
                     "match": match.group(),
+                    "title_path": _find_title_path(match.start(), heading_index),
                 }
             )
 
     return results
+
+
+def _build_heading_index(content: str) -> tuple[list[int], list[str]]:
+    """Precompute markdown heading positions with their hierarchical paths."""
+    heading_pattern = re.compile(r"^(#{1,6})\s+(.+)$", re.MULTILINE)
+    stack: list[tuple[int, str]] = []
+    positions: list[int] = []
+    paths: list[str] = []
+
+    for heading in heading_pattern.finditer(content):
+        level = len(heading.group(1))
+        title = heading.group(2).strip()
+
+        while stack and stack[-1][0] >= level:
+            stack.pop()
+
+        stack.append((level, title))
+        path = " > ".join(item for _, item in stack)
+        positions.append(heading.start())
+        paths.append(path)
+
+    return positions, paths
+
+
+def _find_title_path(position: int, heading_index: tuple[list[int], list[str]]) -> str:
+    """Return the latest heading path occurring before the given position."""
+    positions, paths = heading_index
+    if not positions:
+        return ""
+
+    idx = bisect_right(positions, position) - 1
+    if idx < 0:
+        return ""
+
+    return paths[idx]
 
 
 @click.command()

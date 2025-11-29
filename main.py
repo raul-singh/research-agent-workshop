@@ -19,14 +19,15 @@ load_dotenv()
 def grep_documents(
     query: str,
     document: str | None = None,
-    surrounding: int = 200,
+    surrounding: int = 100,
     after_only: bool = False,
 ) -> str:
     """Search the D&D 5e SRD knowledge base for information.
 
     Use this tool to find specific rules, spells, monsters, items, or any other
     D&D 5e content. The search supports regex patterns and returns matching text
-    with surrounding context.
+    with surrounding context. If the text gets truncated because of the surrounding value,
+    it is indicated by an ellipsis.
 
     Args:
         query: The search string (supports regex). Be specific with your search terms.
@@ -53,10 +54,18 @@ def grep_documents(
     for i, result in enumerate(results, start=1):
         output_parts.append(f"[{i}] Source: {result['source']}")
         output_parts.append(f"    Match: {result['match']}")
+        if result.get("title_path"):
+            output_parts.append(f"    Title Path: {result['title_path']}")
         output_parts.append(f"    Context: {result['content']}")
         output_parts.append("")
 
     return "\n".join(output_parts)
+
+
+@tool
+def write_plan(plan: list[str]) -> str:
+    """Write a plan for the search."""
+    return "\n".join(f"- {part}" for part in plan)
 
 
 def load_structure() -> str:
@@ -82,21 +91,23 @@ The following shows the organization of the SRD documents you can search. Use th
 ## How to Answer Questions
 
 1. **Analyze the question** to identify key terms and topics
-2. **Use grep_documents** to search for relevant information. Tips:
+2. **Plan your search** by breaking down the question into smaller parts. Use the `write_plan` tool to write a plan for the search.
+3. **Use grep_documents** to search for relevant information. Tips:
    - Search for specific terms (spell names, monster names, rule keywords)
    - Use the `document` parameter to target specific files when you know where content is, using the structure provided above. Prefer this over searching all documents.
    - For broad topics, search without specifying a document
    - You may need multiple searches to gather complete information
    - To look for a title, prepend "# " to the query, for example: "# Fireball". You can pair this with `after_only=True` to look for the content after the title since usually content before the title is not relevant.
    - Stop searching when you have enough information to answer the question.
-3. **Synthesize the results** into a clear, accurate answer
-4. **Cite your sources** by mentioning which document(s) the information came from
-5. **If information is not found**, say so clearly rather than guessing
+4. **Synthesize the results** into a clear, accurate answer
+5. **Cite your sources** by mentioning which document(s) the information came from
+6. **If information is not found**, say so clearly rather than guessing
 
 ## Important Guidelines
 
 - Use the `grep_documents` tool in parallel to search for multiple queries at once.
 - Prefer generic queries over specific queries that may fail.
+- If you are doing very wide queries, use a small surrounding value.
 - Do not use your own knowledge to answer the question. Always search the knowledge base for the answer.
 - Always search before answering - don't rely on assumptions
 - Quote relevant rules text when applicable
@@ -105,14 +116,14 @@ The following shows the organization of the SRD documents you can search. Use th
 - Be concise but thorough in your answers"""
 
     client = OpenAIClient(
-        model="gpt-5",
+        model="gpt-5.1",
         api_key=os.getenv("OPENAI_API_KEY"),
     )
     agent = Agent(
         name="dnd_kb_agent",
         client=client,
         system_prompt=system_prompt,
-        tools=[grep_documents],
+        tools=[grep_documents, write_plan],
         gen_args={"reasoning_effort": "minimal"},
     )
 
