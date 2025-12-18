@@ -1,6 +1,3 @@
-#!/usr/bin/env python3
-"""D&D 5e SRD Knowledge Base Agent using datapizza-ai."""
-
 import os
 from pathlib import Path
 
@@ -10,13 +7,13 @@ from datapizza.clients.openai import OpenAIClient
 from datapizza.tools import tool
 from dotenv import load_dotenv
 
-from grep_docs import grep_documents as _grep_documents
+from search_in_docs import search_in_documents
 
 load_dotenv()
 
 
 @tool
-def grep_documents(
+def search(
     query: str,
     document: str | None = None,
     surrounding: int = 100,
@@ -41,7 +38,7 @@ def grep_documents(
     Returns:
         Formatted search results with source document and matching content.
     """
-    results = _grep_documents(
+    results = search_in_documents(
         query=query,
         document=document,
         surrounding=surrounding,
@@ -63,19 +60,6 @@ def grep_documents(
         output_parts.append("")
 
     return "\n".join(output_parts)
-
-
-# OpenAI Responses currently expects the JSON schema's `required` list to name every
-# property, even if the tool supports optional ones. Ensure the tool metadata matches
-# that expectation so registration doesn't fail.
-grep_documents.required = list(grep_documents.schema["parameters"]["properties"].keys())
-grep_documents.schema["parameters"]["required"] = grep_documents.required
-
-
-@tool
-def write_plan(plan: list[str]) -> str:
-    """Write a plan for the search."""
-    return "\n".join(f"- {part}" for part in plan)
 
 
 def load_structure() -> str:
@@ -136,7 +120,7 @@ The following shows the organization of the SRD documents you can search. Use th
         name="dnd_kb_agent",
         client=client,
         system_prompt=system_prompt,
-        tools=[grep_documents, write_plan],
+        tools=[search],
         gen_args={"reasoning_effort": "minimal"},
     )
 
@@ -167,4 +151,5 @@ def main(query: str) -> None:
 
 
 if __name__ == "__main__":
+    main()
     main()
