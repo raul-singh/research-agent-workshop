@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from contextvars import ContextVar
 from dataclasses import dataclass
+from threading import RLock
 from typing import Any
 
 import click
@@ -9,87 +10,173 @@ import click
 
 @dataclass(frozen=True)
 class LogContext:
-    subagent_id: int | None = None
-    task: str | None = None
+    scope: str | None = None
+    label: str | None = None
 
 
-_context: ContextVar[LogContext] = ContextVar("agent_log_context", default=LogContext())
+_context: ContextVar[LogContext] = ContextVar(
+    "harness_log_context", default=LogContext()
+)
+_log_lock = RLock()
 
 
-def set_subagent_context(subagent_id: int, task: str):
-    return _context.set(LogContext(subagent_id=subagent_id, task=task))
+def set_log_context(scope: str, label: str | None = None):
+    return _context.set(LogContext(scope=scope, label=label))
 
 
-def reset_context(token) -> None:
+def reset_log_context(token) -> None:
     _context.reset(token)
 
 
-def log_tool_call(name: str, **arguments: Any) -> None:
+def log_kv(
+    key: str,
+    value: Any,
+    *,
+    limit: int = 220,
+    agent_name: str | None = None,
+) -> None:
+    with _log_lock:
+        _print_agent_prefix(agent_name)
+        _detail(key, _format_value(value, limit=limit))
+
+
+def log_event(
+    label: str,
+    message: str,
+    *,
+    color: str = "cyan",
+    agent_name: str | None = None,
+) -> None:
+    with _log_lock:
+        _line(f"[{label}]", message, fg=color, bold=True, agent_name=agent_name)
+
+
+def log_tool_call_invoke(
+    name: str,
+    arguments: dict[str, Any],
+    *,
+    compact: bool = False,
+    agent_name: str | None = None,
+) -> None:
+    with _log_lock:
+        _log_tool_call(name, arguments, compact=compact, agent_name=agent_name)
+
+
+def log_tool_call_result(
+    name: str,
+    response: Any,
+    *,
+    compact: bool = False,
+    max_lines: int | None = None,
+    agent_name: str | None = None,
+) -> None:
+    with _log_lock:
+        if compact:
+            preview = _shorten(str(response), 120)
+            _print_agent_prefix(agent_name)
+            click.secho("[tool output]", fg="green", bold=True, nl=False)
+            click.secho(f" {name} ", fg="green", bold=True, nl=False)
+            click.secho(preview, dim=True)
+            return
+
+        _line("[tool output]", name, fg="green", bold=True, agent_name=agent_name)
+        effective_max_lines = max_lines if max_lines is not None else 30
+        for line in _preview_lines(str(response), max_lines=effective_max_lines):
+            click.secho(f"  {line}", dim=True)
+
+
+def log_answer(
+    answer: str,
+    *,
+    compact: bool = False,
+    max_lines: int | None = None,
+    agent_name: str | None = None,
+) -> None:
+    with _log_lock:
+        _print_agent_prefix(agent_name)
+        click.secho("[answer]", fg="green", bold=True)
+        effective_max_lines = max_lines if max_lines is not None else (8 if compact else 12)
+        for line in _preview_lines(answer, max_lines=effective_max_lines):
+            click.secho(line, fg="white")
+
+
+def log_task_spawn(
+    label: str,
+    task: str,
+    *,
+    tools: list[str] | None = None,
+    agent_name: str | None = None,
+) -> None:
+    with _log_lock:
+        _line("[task]", f"{label} spawned", fg="blue", bold=True, agent_name=agent_name)
+        _print_agent_prefix(agent_name)
+        _detail("task", _shorten(task, 180))
+        if tools:
+            _print_agent_prefix(agent_name)
+            _detail("tools", ", ".join(tools))
+
+
+def log_task_done(
+    label: str,
+    elapsed_seconds: float,
+    *,
+    agent_name: str | None = None,
+) -> None:
+    with _log_lock:
+        _line(
+            f"[{label}]",
+            f"done in {elapsed_seconds:.1f}s",
+            fg="green",
+            bold=True,
+            agent_name=agent_name,
+        )
+
+
+def log_task_failed(
+    label: str,
+    elapsed_seconds: float,
+    error: Exception,
+    *,
+    agent_name: str | None = None,
+) -> None:
+    with _log_lock:
+        _line(
+            f"[{label}]",
+            f"failed in {elapsed_seconds:.1f}s",
+            fg="red",
+            bold=True,
+            agent_name=agent_name,
+        )
+        _print_agent_prefix(agent_name)
+        _detail("error", str(error))
+
+
+def in_log_context() -> bool:
     context = _context.get()
-    if context.subagent_id is None:
-        _line("[tool]", name, fg="cyan", bold=True)
-        _arguments(arguments)
+    return context.scope is not None
+
+
+def _log_tool_call(
+    name: str,
+    arguments: dict[str, Any],
+    *,
+    compact: bool,
+    agent_name: str | None,
+) -> None:
+    context = _context.get()
+    if context.scope:
+        label = f"[{context.scope}{f' {context.label}' if context.label else ''}]"
+        color = "blue"
+    else:
+        label = "[tool]"
+        color = "cyan"
+
+    if compact:
+        _compact_line(label, name, arguments, fg=color, agent_name=agent_name)
         return
 
-    _line(
-        f"[subagent S{context.subagent_id}]",
-        name,
-        fg="blue",
-        bold=True,
-    )
-    _arguments(arguments, compact=True)
-
-
-def log_tool_output(name: str, output: str) -> None:
-    context = _context.get()
-    if context.subagent_id is not None:
-        return
-
-    _line("[tool output]", name, fg="green", bold=True)
-    for line in _preview_lines(output):
-        click.secho(f"  {line}", dim=True)
-
-
-def log_delegate_start(task_count: int, max_parallel: int, concurrency: int) -> None:
-    _line(
-        "[delegate]", f"starting {task_count} research task(s)", fg="magenta", bold=True
-    )
-    _detail("parallelism", f"{concurrency}/{max_parallel}")
-
-
-def log_delegate_task(index: int, task: str) -> None:
-    _detail(f"task S{index}", _shorten(task, 180))
-
-
-def log_subagent_spawn(index: int, task: str) -> None:
-    _line("[subagent]", f"S{index} spawned", fg="blue", bold=True)
-    _detail("task", _shorten(task, 180))
-    _detail("tools", "search")
-
-
-def log_subagent_done(index: int, elapsed_seconds: float) -> None:
-    _line(
-        f"[subagent S{index}]",
-        f"done in {elapsed_seconds:.1f}s",
-        fg="green",
-        bold=True,
-    )
-
-
-def log_subagent_response(index: int, response: str) -> None:
-    _line(f"[subagent S{index}]", "response", fg="green", bold=True)
-    for line in _preview_lines(response, max_lines=8, line_limit=180):
-        click.secho(f"  {line}", dim=True)
-
-
-def log_subagent_failed(index: int, elapsed_seconds: float, error: Exception) -> None:
-    _line(
-        f"[subagent S{index}]",
-        f"failed in {elapsed_seconds:.1f}s",
-        fg="red",
-        bold=True,
-    )
-    _detail("error", str(error))
+    _line(label, name, fg=color, bold=True, agent_name=agent_name)
+    _arguments(arguments)
 
 
 def _line(
@@ -99,27 +186,44 @@ def _line(
     fg: str,
     bold: bool = False,
     dim: bool = False,
+    agent_name: str | None = None,
 ) -> None:
+    _print_agent_prefix(agent_name)
     click.secho(label, fg=fg, bold=bold, dim=dim, nl=False)
     click.echo(f" {message}")
 
 
-def _arguments(arguments: dict[str, Any], *, compact: bool = False) -> None:
-    if compact:
-        rendered = " ".join(
-            f"{key}={_format_value(value, limit=80)}"
-            for key, value in arguments.items()
-        )
-        click.secho(f"  {rendered}", dim=True)
-        return
-
+def _arguments(arguments: dict[str, Any]) -> None:
     for key, value in arguments.items():
         _detail(key, _format_value(value, limit=220))
+
+
+def _compact_line(
+    label: str,
+    name: str,
+    arguments: dict[str, Any],
+    *,
+    fg: str,
+    agent_name: str | None = None,
+) -> None:
+    _print_agent_prefix(agent_name)
+    click.secho(label, fg=fg, bold=True, nl=False)
+    click.secho(f" {name}", fg=fg, bold=True, nl=False)
+    for key, value in arguments.items():
+        click.echo(" ", nl=False)
+        click.secho(f"{key}=", dim=True, nl=False)
+        click.echo(_format_value(value, limit=80), nl=False)
+    click.echo()
 
 
 def _detail(key: str, value: Any) -> None:
     click.secho(f"  {key}: ", dim=True, nl=False)
     click.echo(value)
+
+
+def _print_agent_prefix(agent_name: str | None) -> None:
+    if agent_name:
+        click.secho(f"[{agent_name}] ", fg="blue", bold=True, nl=False)
 
 
 def _format_value(value: Any, *, limit: int) -> str:

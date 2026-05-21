@@ -1,32 +1,27 @@
-import asyncio
 import os
 import time
+from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 from typing import Annotated
 
-from datapizza.agents import Agent
 from datapizza.clients.openai import OpenAIClient
-from datapizza.tools import tool
+from datapizza.tools import Tool, tool
 from dotenv import load_dotenv
 
 from agent.custom_logs import (
-    log_delegate_start,
-    log_delegate_task,
-    log_subagent_done,
-    log_subagent_failed,
-    log_subagent_response,
-    log_subagent_spawn,
-    log_tool_call,
-    log_tool_output,
-    reset_context,
-    set_subagent_context,
+    log_event,
+    log_kv,
+    log_task_done,
+    log_task_failed,
+    log_task_spawn,
 )
+from agent.harness import Agent
 from agent.prompt import SEARCH_GUIDANCE, SUBAGENT_PROMPT, SYSTEM_PROMPT
 from agent.search_in_docs import search_in_documents
 
 load_dotenv()
 
-MODEL = "gpt-5.4"
+MODEL = "gpt-5.4-mini"
 MAX_SEARCH_RESULTS = 50
 
 
@@ -68,15 +63,6 @@ def search(
     Returns:
         Formatted search results with source document and matching content.
     """
-    log_tool_call(
-        "search",
-        query=query,
-        document=document,
-        surrounding=surrounding,
-        after_only=after_only,
-        fuzzy=fuzzy,
-        case_sensitive=case_sensitive,
-    )
 
     results = search_in_documents(
         query=query,
@@ -88,19 +74,15 @@ def search(
     )
 
     if not results:
-        output = "No matches found for the given query."
-        log_tool_output("search", output)
-        return output
+        return "No matches found for the given query."
 
     if len(results) > MAX_SEARCH_RESULTS:
-        output = (
+        return (
             f"Search returned {len(results)} matches, which is too many to return safely. "
             "Narrow the query before trying again: use a more specific term, set the "
             "document parameter when possible, search a heading/title first, or split the "
             "question into smaller searches."
         )
-        log_tool_output("search", output)
-        return output
 
     output_parts = [f"Found {len(results)} match(es):\n"]
 
@@ -112,50 +94,11 @@ def search(
         output_parts.append(f"    Context: {result['content']}")
         output_parts.append("")
 
-    output = "\n".join(output_parts)
-    log_tool_output("search", output)
-    return output
-
-
-async def _run_subagent_task(
-    task: str,
-    index: int,
-    structure: str,
-) -> str:
-    """Run a single research task in an isolated subagent."""
-    started_at = time.monotonic()
-    log_subagent_spawn(index, task)
-    token = set_subagent_context(index, task)
-    subagent = Agent(
-        name=f"dnd_kb_research_subagent_{index}",
-        client=create_client(),
-        system_prompt=SUBAGENT_PROMPT.format(
-            structure=structure,
-            search_guidance=SEARCH_GUIDANCE,
-        ),
-        tools=[search],
-        max_steps=20,
-    )
-    try:
-        result = await subagent.a_run(task)
-    except Exception as exc:
-        log_subagent_failed(index, time.monotonic() - started_at, exc)
-        raise
-    finally:
-        reset_context(token)
-
-    log_subagent_done(index, time.monotonic() - started_at)
-    if not result or not result.text:
-        answer = "No answer returned."
-        log_subagent_response(index, answer)
-        return answer
-
-    log_subagent_response(index, result.text)
-    return result.text
+    return "\n".join(output_parts)
 
 
 @tool
-async def delegate_research(
+def delegate_research(
     tasks: Annotated[
         list[str],
         "Concrete, independent research tasks. Each task should ask a subagent to gather evidence and sources, not merely plan the work.",
@@ -179,33 +122,23 @@ async def delegate_research(
     Returns:
         Numbered subagent findings, one section per task.
     """
-    log_tool_call("delegate_research", tasks=tasks, max_parallel=max_parallel)
 
     cleaned_tasks = [task.strip() for task in tasks if task.strip()]
     if not cleaned_tasks:
-        output = "No research tasks provided."
-        log_tool_output("delegate_research", output)
-        return output
+        return "No research tasks provided."
 
-    structure = load_structure()
+    subagent_prompt = format_subagent_prompt()
     concurrency = min(max(1, max_parallel), 8)
-    log_delegate_start(len(cleaned_tasks), max_parallel, concurrency)
-    for index, task in enumerate(cleaned_tasks, start=1):
-        log_delegate_task(index, task)
-
-    semaphore = asyncio.Semaphore(concurrency)
-
-    async def run_limited(index: int, task: str) -> tuple[int, str, str]:
-        async with semaphore:
-            try:
-                answer = await _run_subagent_task(task, index, structure)
-            except Exception as exc:
-                answer = f"Subagent failed: {exc}"
-            return index, task, answer
-
-    results = await asyncio.gather(
-        *(run_limited(index, task) for index, task in enumerate(cleaned_tasks, start=1))
+    log_event(
+        "delegate", f"starting {len(cleaned_tasks)} research task(s)", color="magenta"
     )
+
+    with ThreadPoolExecutor(max_workers=concurrency) as executor:
+        futures = [
+            executor.submit(_run_subagent_task, task, index, subagent_prompt)
+            for index, task in enumerate(cleaned_tasks, start=1)
+        ]
+        results = [future.result() for future in futures]
 
     output_parts = [f"Completed {len(results)} delegated research task(s):"]
     for index, task, answer in sorted(results):
@@ -213,15 +146,57 @@ async def delegate_research(
         output_parts.append(f"[{index}] Task: {task}")
         output_parts.append(answer)
 
-    output = "\n".join(output_parts)
-    log_tool_output("delegate_research", output)
-    return output
+    return "\n".join(output_parts)
+
+
+def _run_subagent_task(
+    task: str,
+    index: int,
+    system_prompt: str,
+) -> tuple[int, str, str]:
+    """Run a single delegated research task in an isolated harness Agent."""
+    started_at = time.monotonic()
+    name = f"S{index}"
+    log_task_spawn(name, task, tools=["search"], agent_name=name)
+
+    subagent = Agent(
+        client=create_client(),
+        system_prompt=system_prompt,
+        tools=[Tool(search)],
+        compact_logs=True,
+        name=name,
+    )
+
+    try:
+        answer = subagent.run(task)
+    except Exception as exc:
+        log_task_failed("task", time.monotonic() - started_at, exc, agent_name=name)
+        return index, task, f"Subagent failed: {exc}"
+
+    log_task_done("task", time.monotonic() - started_at, agent_name=name)
+    return index, task, answer or "No answer returned."
 
 
 def load_structure() -> str:
-    """Load the knowledge base structure file."""
-    structure_path = Path("knowledge_base/structure.txt")
+    """Load the knowledge base table of contents file."""
+    structure_path = Path("knowledge_base/toc.txt")
     return structure_path.read_text(encoding="utf-8")
+
+
+def format_system_prompt() -> str:
+    """Format the main agent system prompt with current KB structure."""
+    return SYSTEM_PROMPT.format(
+        structure=load_structure(),
+        search_guidance=SEARCH_GUIDANCE,
+    )
+
+
+def format_subagent_prompt() -> str:
+    """Format the delegated research subagent prompt with current KB structure."""
+    return SUBAGENT_PROMPT.format(
+        structure=load_structure(),
+        search_guidance=SEARCH_GUIDANCE,
+    )
 
 
 def create_client() -> OpenAIClient:
@@ -234,17 +209,8 @@ def create_client() -> OpenAIClient:
 
 def create_agent() -> Agent:
     """Create and configure the D&D knowledge base agent."""
-    structure = load_structure()
-
-    client = create_client()
-    agent = Agent(
-        name="dnd_kb_agent",
-        client=client,
-        system_prompt=SYSTEM_PROMPT.format(
-            structure=structure,
-            search_guidance=SEARCH_GUIDANCE,
-        ),
+    return Agent(
+        client=create_client(),
+        system_prompt=format_system_prompt(),
         tools=[search, delegate_research],
     )
-
-    return agent

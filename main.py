@@ -23,7 +23,7 @@ def main(query: str) -> None:
     response = agent.run(query)
 
     click.echo(click.style("Answer:", fg="green", bold=True))
-    click.echo(response.text)
+    click.echo(response)
 
 
 if __name__ == "__main__":

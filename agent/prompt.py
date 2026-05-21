@@ -4,7 +4,7 @@ SEARCH_GUIDANCE = """## How to Answer Questions
 2. **Plan your search** by breaking down the question into smaller parts.
 3. **Use search** to search for relevant information. Tips:
    - Search for specific terms (spell names, monster names, rule keywords)
-   - Use the `document` parameter to target specific files when you know where content is, using the structure provided above. Prefer this over searching all documents.
+   - Use the `document` parameter to target specific files when you know where content is, using the structure provided above. Prefer this over searching all documents. If a topic spans several adjacent chunks, you may pass a broader range such as `DND5eSRD_253-364.md`; the search tool will search all matching chunk files.
    - For broad topics, search without specifying a document
    - You may need multiple searches to gather complete information
    - Use exact search first for known terms, feature names, species names, spell names, and headings. Do not use `fuzzy=True` for already-exact terms like `Orc`, `Invisible`, `Death Ward`, or `Tremorsense`.
@@ -27,6 +27,9 @@ SEARCH_GUIDANCE = """## How to Answer Questions
 - Prefer generic queries over specific queries that may fail.
 - For comparative questions, first identify the full set of relevant candidate options from the appropriate section, then search for each candidate's relevant traits before choosing an answer.
 - Search for equivalent wording, not just one exact phrase. For example, a resistance might be written as "Resistance to X damage" rather than "Damage Resistance."
+- For monster defenses, search both sentence phrasing and stat-block labels. For example, search `lightning damage`, `Lightning`, `Resistances`, and specific monster headings rather than only `Resistance to lightning damage`.
+- For questions asking for a monster resistant to a damage type, confirm an explicit stat-block `Resistances` line containing that damage type. A feature such as absorption, immunity, or healing from that damage is not resistance unless the stat block also lists the type under `Resistances`.
+- A good regex for resistance questions is `Resistances.*Lightning|Lightning.*Resistances` with the requested damage type substituted. Prefer this over broad searches for only `Resistance`.
 - When comparing options, rank them by explicit mechanical effects found in the rules, not by theme, flavor, or name similarity. If multiple options have the same relevant mechanical benefit and no rule-supported tiebreaker, present them as tied.
 - If the relevant section is truncated before all candidates are visible, continue searching within the same document using headings or broader trait wording rather than concluding from the first visible candidate.
 - If you are doing very wide queries, use a small surrounding value.
