@@ -5,16 +5,10 @@ from pathlib import Path
 from typing import Annotated
 
 from datapizza.clients.openai import OpenAIClient
-from datapizza.tools import Tool, tool
+from datapizza.tools import tool
 from dotenv import load_dotenv
 
-from agent.custom_logs import (
-    log_event,
-    log_kv,
-    log_task_done,
-    log_task_failed,
-    log_task_spawn,
-)
+from agent.custom_logs import log_event, log_task_done, log_task_failed, log_task_spawn
 from agent.harness import Agent
 from agent.prompt import SEARCH_GUIDANCE, SUBAGENT_PROMPT, SYSTEM_PROMPT
 from agent.search_in_docs import search_in_documents
@@ -162,7 +156,7 @@ def _run_subagent_task(
     subagent = Agent(
         client=create_client(),
         system_prompt=system_prompt,
-        tools=[Tool(search)],
+        tools=[search],
         compact_logs=True,
         name=name,
     )

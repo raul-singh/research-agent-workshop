@@ -17,7 +17,7 @@ class Agent:
         tools: list[Tool],
         compact_logs: bool = False,
         max_tool_workers: int = 8,
-        name: str = "agent",
+        name: str = "",
     ):
         self.tool_mapping = {tool.name: tool for tool in tools}
         self.tools = tools
@@ -51,7 +51,7 @@ class Agent:
         )
 
     def _step(
-        self, input: str, memory: Memory
+        self, input: str | None = None, memory: Memory | None = None
     ) -> tuple[list[Block], list[FunctionCallResultBlock]]:
         response = self.client.invoke(
             input=input,
@@ -69,16 +69,18 @@ class Agent:
                 )
 
             elif isinstance(block, TextBlock):
-                log_answer(block.content, compact=self.compact_logs, agent_name=self.name)
+                log_answer(
+                    block.content, compact=self.compact_logs, agent_name=self.name
+                )
 
         tool_results = [future.result() for future in tool_futures]
 
         return output, tool_results
 
     def run(self, input: str) -> str:
-        current_turn = self.memory.add_turn(TextBlock(content=input), ROLE.USER)
+        self.memory.add_turn(TextBlock(content=input), ROLE.USER)
         while True:
-            step_result, tool_results = self._step(current_turn, self.memory)
+            step_result, tool_results = self._step(memory=self.memory)
             self.memory.add_turn(step_result, ROLE.ASSISTANT)
             if tool_results:
                 for tool_result in tool_results:

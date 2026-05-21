@@ -108,20 +108,20 @@ def search_in_documents(
     """
     folder_path = Path(folder)
 
-    # Search in single document, a requested page-range, or all documents in folder.
+    # Search in single document or all documents in folder.
     if document:
         results: list[dict[str, str]] = []
-        for doc_path in _resolve_document_paths(folder_path, document):
-            results.extend(
-                search_in_doc(
-                    query=query,
-                    doc_path=doc_path,
-                    surrounding=surrounding,
-                    after_only=after_only,
-                    fuzzy=fuzzy,
-                    case_sensitive=case_sensitive,
-                )
+        doc_path = _resolve_document_path(folder_path, document)
+        results.extend(
+            search_in_doc(
+                query=query,
+                doc_path=doc_path,
+                surrounding=surrounding,
+                after_only=after_only,
+                fuzzy=fuzzy,
+                case_sensitive=case_sensitive,
             )
+        )
         return results
     else:
         results: list[dict[str, str]] = []
@@ -139,48 +139,15 @@ def search_in_documents(
         return results
 
 
-def _resolve_document_paths(folder_path: Path, document: str) -> list[Path]:
-    """Resolve a document name to one or more files.
+def _resolve_document_path(folder_path: Path, document: str) -> Path:
+    """Resolve a document by matching the real file title/name."""
+    document_title = document.removesuffix(".md")
 
-    The table of contents sometimes leads models to request broader synthetic
-    ranges such as DND5eSRD_253-364.md, while the corpus is split into smaller
-    files like DND5eSRD_253-272.md. Treat such requests as a range over the
-    existing chunks instead of failing silently.
-    """
-    candidates = [folder_path / document]
-    if not document.endswith(".md"):
-        candidates.append(folder_path / f"{document}.md")
-
-    for candidate in candidates:
-        if candidate.exists():
-            return [candidate]
-
-    requested_range = _parse_srd_range(document)
-    if requested_range is None:
-        return [candidates[-1]]
-
-    requested_start, requested_end = requested_range
-    matching_paths = []
     for path in sorted(folder_path.glob("*.md")):
-        file_range = _parse_srd_range(path.name)
-        if file_range is None:
-            continue
+        if path.name == document or path.stem == document_title:
+            return path
 
-        file_start, file_end = file_range
-        if file_start <= requested_end and requested_start <= file_end:
-            matching_paths.append(path)
-
-    return matching_paths or [candidates[-1]]
-
-
-def _parse_srd_range(filename: str) -> tuple[int, int] | None:
-    match = re.search(r"DND5eSRD_(\d+)-(\d+)(?:\.md)?$", filename)
-    if not match:
-        return None
-
-    start = int(match.group(1))
-    end = int(match.group(2))
-    return (start, end) if start <= end else (end, start)
+    return folder_path / f"{document_title}.md"
 
 
 def _build_heading_index(content: str) -> tuple[list[int], list[str]]:

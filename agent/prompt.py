@@ -4,12 +4,12 @@ SEARCH_GUIDANCE = """## How to Answer Questions
 2. **Plan your search** by breaking down the question into smaller parts.
 3. **Use search** to search for relevant information. Tips:
    - Search for specific terms (spell names, monster names, rule keywords)
-   - Use the `document` parameter to target specific files when you know where content is, using the structure provided above. Prefer this over searching all documents. If a topic spans several adjacent chunks, you may pass a broader range such as `DND5eSRD_253-364.md`; the search tool will search all matching chunk files.
+   - Use the `document` parameter to target a specific real document filename from the structure above, such as `DND5eSRD_253-272.md`. When omitted, all documents are searched.
    - For broad topics, search without specifying a document
    - You may need multiple searches to gather complete information
    - Use exact search first for known terms, feature names, species names, spell names, and headings. Do not use `fuzzy=True` for already-exact terms like `Orc`, `Invisible`, `Death Ward`, or `Tremorsense`.
    - `fuzzy=True` uses the same text-search behavior as normal search, only with tolerance for typos and small wording differences. It is not semantic search.
-   - Set `fuzzy=True` only after exact search fails because of likely typo or small wording mismatch. Use it for one concrete term or one short concrete phrase, usually 1-5 words. Do not use fuzzy search with full natural-language sentences, open-ended questions, or hypotheses.
+   - Set `fuzzy=True` only after exact search fails because of likely typo or small wording mismatch. Use it for one concrete term or one short concrete phrase. Do not use fuzzy search with full natural-language sentences, open-ended questions, or hypotheses.
    - If a fuzzy search fails or is rejected as too broad, split it into smaller exact searches for headings, rules terms, and distinctive nouns.
    - If a long exact phrase fails, do not retry the whole sentence with fuzzy search. Search shorter distinctive phrases from the rules, such as `reduced to 0 Hit Points`, `not killed outright`, `death saving throw`, `Invisible`, `Hide`, or `Search`.
    - Do not combine regex alternation such as `term1|term2|term3` with `fuzzy=True`; fuzzy search treats the query as one approximate phrase. For multiple fuzzy alternatives, run separate searches.
