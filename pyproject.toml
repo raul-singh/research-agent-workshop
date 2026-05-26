@@ -5,7 +5,7 @@ description = "D&D 5e SRD Knowledge Base Agent"
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
-    "datapizza-ai>=0.0.2",
+    "datapizza-ai>=0.1.0",
     "click>=8.0.0",
     "rapidfuzz>=3.9.0",
 ]
