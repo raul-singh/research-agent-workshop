@@ -9,18 +9,20 @@ from rapidfuzz import fuzz
 def search_in_doc(
     query: str,
     doc_path: str | Path,
-    surrounding: int = 100,
+    surrounding: int = 5,
     after_only: bool = False,
     fuzzy: bool = False,
+    case_sensitive: bool = False,
 ) -> list[dict[str, str]]:
     """Search for query in a single document.
 
     Args:
         query: The search string (supports regex).
         doc_path: The path to the document to search (mandatory).
-        surrounding: Number of characters before and after the match to include (default: 100).
-        after_only: If True, only include characters after the match, not before (default: False).
+        surrounding: Number of lines before and after the match to include (default: 5).
+        after_only: If True, only include lines after the match, not before (default: False).
         fuzzy: If True, use fuzzy search to find similar text (default: False).
+        case_sensitive: If True, match case exactly (default: False).
 
     Returns:
         A list of dicts, each containing:
@@ -35,37 +37,35 @@ def search_in_doc(
     if not file_path.exists():
         return results
 
+    regex_flags = 0 if case_sensitive else re.IGNORECASE
     try:
-        pattern = re.compile(query, re.IGNORECASE)
+        pattern = re.compile(query, regex_flags)
     except re.error:
         # If query is not valid regex, escape it
-        pattern = re.compile(re.escape(query), re.IGNORECASE)
+        pattern = re.compile(re.escape(query), regex_flags)
 
     content = file_path.read_text(encoding="utf-8")
     heading_index = _build_heading_index(content)
 
     if fuzzy:
-        match_spans = _fuzzy_find_matches(query, content)
+        match_spans = _fuzzy_find_matches(
+            query,
+            content,
+            case_sensitive=case_sensitive,
+        )
     else:
         match_spans = [
             (m.start(), m.end(), m.group()) for m in pattern.finditer(content)
         ]
 
     for match_start, match_end, matched_text in match_spans:
-        if after_only:
-            start = match_start
-        else:
-            start = max(0, match_start - surrounding)
-        end = min(len(content), match_end + surrounding)
-
-        # Extract context
-        context = content[start:end]
-
-        # Add ellipsis if we truncated
-        if start > 0 and not after_only:
-            context = "..." + context
-        if end < len(content):
-            context = context + "..."
+        context = _line_context(
+            content=content,
+            match_start=match_start,
+            match_end=match_end,
+            surrounding=surrounding,
+            after_only=after_only,
+        )
 
         results.append(
             {
@@ -83,9 +83,10 @@ def search_in_documents(
     query: str,
     document: str | None = None,
     folder: str = "knowledge_base/docs",
-    surrounding: int = 100,
+    surrounding: int = 5,
     after_only: bool = False,
     fuzzy: bool = False,
+    case_sensitive: bool = False,
 ) -> list[dict[str, str]]:
     """Search for query in documents and return matches with surrounding context.
 
@@ -93,9 +94,10 @@ def search_in_documents(
         query: The search string (supports regex).
         document: Optional specific document filename to search. If None, searches all .md files in folder.
         folder: Folder path containing documents to search (default: "knowledge_base/docs").
-        surrounding: Number of characters before and after the match to include (default: 100).
-        after_only: If True, only include characters after the match, not before (default: False).
+        surrounding: Number of lines before and after the match to include (default: 5).
+        after_only: If True, only include lines after the match, not before (default: False).
         fuzzy: If True, use fuzzy search to find similar text (default: False).
+        case_sensitive: If True, match case exactly (default: False).
 
     Returns:
         A list of dicts, each containing:
@@ -106,19 +108,21 @@ def search_in_documents(
     """
     folder_path = Path(folder)
 
-    # Search in single document or all documents in folder
+    # Search in single document or all documents in folder.
     if document:
-        doc_path = folder_path / document
-        if not doc_path.exists():
-            # Try with .md extension
-            doc_path = folder_path / f"{document}.md"
-        return search_in_doc(
-            query=query,
-            doc_path=doc_path,
-            surrounding=surrounding,
-            after_only=after_only,
-            fuzzy=fuzzy,
+        results: list[dict[str, str]] = []
+        doc_path = _resolve_document_path(folder_path, document)
+        results.extend(
+            search_in_doc(
+                query=query,
+                doc_path=doc_path,
+                surrounding=surrounding,
+                after_only=after_only,
+                fuzzy=fuzzy,
+                case_sensitive=case_sensitive,
+            )
         )
+        return results
     else:
         results: list[dict[str, str]] = []
         for file_path in sorted(folder_path.glob("*.md")):
@@ -129,9 +133,21 @@ def search_in_documents(
                     surrounding=surrounding,
                     after_only=after_only,
                     fuzzy=fuzzy,
+                    case_sensitive=case_sensitive,
                 )
             )
         return results
+
+
+def _resolve_document_path(folder_path: Path, document: str) -> Path:
+    """Resolve a document by matching the real file title/name."""
+    document_title = document.removesuffix(".md")
+
+    for path in sorted(folder_path.glob("*.md")):
+        if path.name == document or path.stem == document_title:
+            return path
+
+    return folder_path / f"{document_title}.md"
 
 
 def _build_heading_index(content: str) -> tuple[list[int], list[str]]:
@@ -169,12 +185,49 @@ def _find_title_path(position: int, heading_index: tuple[list[int], list[str]]) 
     return paths[idx]
 
 
+def _line_context(
+    content: str,
+    match_start: int,
+    match_end: int,
+    surrounding: int,
+    after_only: bool,
+) -> str:
+    """Return whole-line context around a match span."""
+    lines = content.splitlines(keepends=True)
+    if not lines:
+        return ""
+
+    line_starts: list[int] = []
+    position = 0
+    for line in lines:
+        line_starts.append(position)
+        position += len(line)
+
+    match_start_line = max(0, bisect_right(line_starts, match_start) - 1)
+    match_end_position = max(match_start, match_end - 1)
+    match_end_line = max(0, bisect_right(line_starts, match_end_position) - 1)
+
+    context_start_line = (
+        match_start_line if after_only else max(0, match_start_line - surrounding)
+    )
+    context_end_line = min(len(lines), match_end_line + surrounding + 1)
+    context = "".join(lines[context_start_line:context_end_line])
+
+    if context_start_line > 0 and not after_only:
+        context = "..." + context
+    if context_end_line < len(lines):
+        context = context + "..."
+
+    return context
+
+
 def _fuzzy_find_matches(
     query: str,
     content: str,
     fuzzy_threshold: float = 85.0,
     max_fuzzy_matches_per_block: int = 5,
     paragraph_pattern: re.Pattern[str] = re.compile(r".+?(?:\n\s*\n|$)", re.DOTALL),
+    case_sensitive: bool = False,
 ) -> list[tuple[int, int, str]]:
     """Find approximate matches for query inside content."""
     matches: list[tuple[int, int, str]] = []
@@ -182,14 +235,14 @@ def _fuzzy_find_matches(
     if not normalized_query:
         return matches
 
-    query_norm = normalized_query.lower()
+    query_norm = normalized_query if case_sensitive else normalized_query.casefold()
 
     for block in paragraph_pattern.finditer(content):
         segment = block.group()
         if not segment.strip():
             continue
 
-        working_norm = segment.lower()
+        working_norm = segment if case_sensitive else segment.casefold()
         match_count = 0
 
         while match_count < max_fuzzy_matches_per_block:
@@ -234,20 +287,25 @@ def _fuzzy_find_matches(
 @click.option(
     "--surrounding",
     "-s",
-    default=100,
+    default=5,
     type=int,
-    help="Characters of context before/after match",
+    help="Lines of context before/after match",
 )
 @click.option(
     "--after-only",
     "-a",
     is_flag=True,
-    help="Only include characters after the match, not before",
+    help="Only include lines after the match, not before",
 )
 @click.option(
     "--fuzzy",
     is_flag=True,
     help="Enable fuzzy search to find approximate matches",
+)
+@click.option(
+    "--case-sensitive",
+    is_flag=True,
+    help="Match case exactly instead of the default case-insensitive search",
 )
 def main(
     query: str,
@@ -256,6 +314,7 @@ def main(
     surrounding: int,
     after_only: bool,
     fuzzy: bool,
+    case_sensitive: bool,
 ) -> None:
     """Search for QUERY in markdown documents."""
     results = search_in_documents(
@@ -265,6 +324,7 @@ def main(
         surrounding=surrounding,
         after_only=after_only,
         fuzzy=fuzzy,
+        case_sensitive=case_sensitive,
     )
 
     if not results:
